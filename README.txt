@@ -21,16 +21,16 @@ Original source available at: http://www.inf.ethz.ch/personal/chzach/opensource.
 
 Dependencies:
 -------------
-ArPack : I've used using igraph (http://igraph.bzr.sf.net/bzr/igraph/) source
-CG
+ArPack : I've used igraph source (http://igraph.bzr.sf.net/bzr/igraph/)
+CG 3.0
 COLAMD 2.7.2: http://www.cise.ufl.edu/research/sparse/colamd/ (LGPL)
 FreeGlut
 LDL 2.0.2: http://www.cise.ufl.edu/research/sparse/ldl/ (LGPL)
 LibDAI 0.2.7: http://people.kyb.tuebingen.mpg.de/jorism/libDAI/
 LibExif 0.6.20: http://libexif.sourceforge.net/
 LibJpeg 6.2
-LibPng
-LpSolve
+LibPng 1.4.3
+LpSolve 5.5.2.0: http://sourceforge.net/projects/lpsolve/
 SiftGPU
 SQlite3
 zlib
