@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="LibExif"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(LibExif)\include&quot;;&quot;$(LibExif)\include\libexif\canon&quot;;&quot;$(LibExif)\include\libexif\fuji&quot;;&quot;$(LibExif)\include\libexif\olympus&quot;;&quot;$(LibExif)\include\libexif\pentax&quot;"
+		PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
+	/>
+	<UserMacro
+		Name="LibExif"
+		Value="$(SolutionDir)\Dependencies\LibExif"
+	/>
+</VisualStudioPropertySheet>

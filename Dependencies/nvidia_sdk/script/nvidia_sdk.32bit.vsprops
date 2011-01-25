@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="nvidia_sdk.32bit"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(nvidia_sdk)\common\inc&quot;;&quot;$(cuda_toolkit)\include&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="cudpp32.lib cublas.lib cudart.lib cUtil32.lib cuda.lib"
+		AdditionalLibraryDirectories="&quot;$(nvidia_sdk)\common\lib&quot;;&quot;$(cuda_toolkit)\lib&quot;"
+	/>
+	<UserMacro
+		Name="nvidia_sdk"
+		Value="C:\ProgramData\NVIDIA Corporation\NVIDIA GPU Computing SDK\C"
+	/>
+	<UserMacro
+		Name="cuda_toolkit"
+		Value="c:\cuda"
+	/>
+</VisualStudioPropertySheet>

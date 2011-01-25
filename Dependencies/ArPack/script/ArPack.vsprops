@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="ArPack"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(ArPack)\include"
+	/>
+	<UserMacro
+		Name="ArPack"
+		Value="$(SolutionDir)\Dependencies\ArPack"
+	/>
+</VisualStudioPropertySheet>

@@ -1,0 +1,8 @@
+void
+main(uniform sampler2D depth_tex : TEXUNIT0,
+     float2 st0 :  TEXCOORD0,
+     out float4 color : COLOR)
+{
+   float depth = tex2D(depth_tex, st0).x;
+   color = unpack_4ubyte(depth);
+}

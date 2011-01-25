@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="libpng"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(libpng)\include"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="libpng.lib"
+		AdditionalLibraryDirectories="$(libpng)\lib\$(PlatformName)"
+	/>
+	<UserMacro
+		Name="libpng"
+		Value="$(SolutionDir)\Dependencies\libpng"
+	/>
+</VisualStudioPropertySheet>

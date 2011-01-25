@@ -1,0 +1,1 @@
+I've used the version packaged with igraph: http://igraph.bzr.sf.net/bzr/igraph/

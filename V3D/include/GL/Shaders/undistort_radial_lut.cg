@@ -1,0 +1,23 @@
+void main(uniform sampler2D src_tex : TEXUNIT0,
+          uniform sampler1D lut_tex : TEXUNIT1,
+          float3 st0 : TEXCOORD0,
+          uniform float2 center,
+          uniform float  lutScale,
+          uniform float4 wh, // with & height of the image, 1/w, 1/h
+          out float3 color : COLOR)
+{      
+   float2 const x   = float2(st0.x/st0.z,st0.y/st0.z) - float2(0.5);
+   float2 const n   = (x - center);
+   float  const r   = lutScale * length(n);
+   float2 const dir = normalize(n);
+#if 0
+   float  const ofs = tex1D(lut_tex, r).x;
+   float2 const st  = wh.zw * (st0 + dir*ofs);
+#else
+   float  const new_r = tex1D(lut_tex, r).x;
+   float2 const st  = wh.zw * (center + float2(0.5) + dir*new_r);
+#endif
+   color = (r <= 1) ? tex2D(src_tex, st).xyz : (0).xxx;
+   color = any(st < float2(0)) ? (0).xxx : color;
+   color = any(st > float2(1)) ? (0).xxx : color;
+}

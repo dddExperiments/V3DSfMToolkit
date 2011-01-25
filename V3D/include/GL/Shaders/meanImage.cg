@@ -1,0 +1,7 @@
+void main(uniform sampler2D accum_tex : TEXUNIT0,
+          float2 st0 : TEXCOORD0,
+          out float3 color : COLOR)
+{
+   float4 accum = tex2D(accum_tex, st0);
+   color = (accum.w > 0) ? (accum.xyz / accum.w / 255.0) : float3(0.0);
+}

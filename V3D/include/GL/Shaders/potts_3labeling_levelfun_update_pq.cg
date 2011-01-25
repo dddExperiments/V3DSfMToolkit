@@ -1,0 +1,37 @@
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D p1_src : TEXUNIT1,
+          uniform sampler2D p2_src : TEXUNIT2,
+          uniform sampler2D q_src : TEXUNIT3,
+          uniform sampler2D c_src : TEXUNIT4,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float tau,
+          out float3 p1_out : COLOR0,
+          out float3 p2_out : COLOR1,
+          out float3 q_out : COLOR2)
+{
+   float3 const c   = tex2D(c_src, st0).xyz;
+   float3 const u   = tex2D(u_src, st0).xyz;
+   float3 const u_E = tex2D(u_src, stWE.zw).xyz;
+   float3 const u_S = tex2D(u_src, stNS.zw).xyz;
+
+   float3 p1 = tex2D(p1_src, st0).xyz;
+   float3 p2 = tex2D(p2_src, st0).xyz;
+   float3 q  = tex2D(q_src, st0).xyz;
+
+   float3 const u_l = float3(u.yz, 1.0) - u;
+   float3 const u_E_l = float3(u_E.yz, 1.0) - u_E;
+   float3 const u_S_l = float3(u_S.yz, 1.0) - u_S;
+
+   float3 u_l_x = u_E_l - u_l;
+   float3 u_l_y = u_S_l - u_l;
+
+   p1 -= tau * u_l_x;
+   p2 -= tau * u_l_y;
+   q  -= tau * u_l;
+
+   p1_out = clamp(p1, -1, 1);
+   p2_out = clamp(p2, -1, 1);
+   q_out  = clamp(q, -c, c);
+}

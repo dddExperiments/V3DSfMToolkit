@@ -1,0 +1,129 @@
+//#define USE_PACKED_P 1
+
+#if defined(USE_PACKED_P)
+
+void unpack_p(float3 p_packed, out half3 p_x, out half3 p_y)
+{
+   p_x.xy = unpack_2half(p_packed.x);
+   half2 tmp = unpack_2half(p_packed.y);
+   p_x.z = tmp.x;
+   p_y.x = tmp.y;
+   p_y.yz = unpack_2half(p_packed.z);
+}
+
+void unpack_p1(float3 p_packed, out half3 p1)
+{
+   p1.xy = unpack_2half(p_packed.x);
+   p1.z = unpack_2half(p_packed.y).x;
+}
+
+void unpack_p2(float3 p_packed, out half3 p2)
+{
+   p2.x = unpack_2half(p_packed.y).y;
+   p2.yz = unpack_2half(p_packed.z);
+}
+
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D p_src : TEXUNIT1,
+          uniform sampler2D c_src : TEXUNIT2,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float theta,
+          out float3 u_out : COLOR0)
+{
+   float2 stW = stWE.xy;
+   float2 stN = stNS.xy;
+
+   float3 const u = tex2D(u_src, st0).xyz;
+   float3 const c = tex2D(c_src, st0).xyz;
+
+   float3 p_packed    = tex2D(p_src, st0).xyz;
+   float3 p_W_packed  = tex2D(p_src, stW).xyz;
+   float3 p_N_packed  = tex2D(p_src, stN).xyz;
+
+   bool const isLeftBorder  = (stW.x < 0);
+   bool const isTopBorder   = (stN.y < 0);
+
+   half3 p1, p2, p1_W, p2_N;
+
+   unpack_p(p_packed, p1, p2);
+   unpack_p1(p_W_packed, p1_W);
+   unpack_p2(p_N_packed, p2_N);
+
+   p1_W  = isLeftBorder ? half3(0) : p1_W;
+   p2_N  = isTopBorder  ? half3(0) : p2_N;
+
+   float3 div_p = p1 - p1_W + p2 - p2_N;
+
+   float3 v = u - theta*c;
+
+   // Project v on the canonical simplex.
+
+   // First iteration:
+   v = v + (1.0 - dot(half3(1), v))/3;
+   half3 I = (v < 0) ? half3(0) : half3(1);
+   v = max(v, float3(0));
+
+   // 2nd iteration:
+   v = v + (1.0 - dot(I, v))/(I.x + I.y + I.z);
+   I = (v < 0) ? half3(0) : I;
+   v = max(v, float3(0));
+
+   // 3nd iteration:
+   v = v + (1.0 - dot(I, v))/(I.x + I.y + I.z);
+
+   u_out = v + theta*div_p;
+   //u_out = max(float3(0), min(float3(1), v + theta*div_p));
+}
+
+#else
+
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D p1_src : TEXUNIT1,
+          uniform sampler2D p2_src : TEXUNIT2,
+          uniform sampler2D c_src : TEXUNIT3,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float theta,
+          out float3 u_out : COLOR0)
+{
+   float2 stW = stWE.xy;
+   float2 stN = stNS.xy;
+
+   float3 const u = tex2D(u_src, st0).xyz;
+   float3 const c = tex2D(c_src, st0).xyz;
+
+   half3 p1 = tex2D(p1_src, st0).xyz;
+   half3 p2 = tex2D(p2_src, st0).xyz;
+
+   bool const isLeftBorder  = (stW.x < 0);
+   bool const isTopBorder   = (stN.y < 0);
+
+   half3 p1_W = isLeftBorder ? half3(0) : tex2D(p1_src, stW).xyz;
+   half3 p2_N = isTopBorder  ? half3(0) : tex2D(p2_src, stN).xyz;
+
+   float3 div_p = p1 - p1_W + p2 - p2_N;
+
+   float3 v = u - theta*c;
+
+   // Project v on the canonical simplex.
+   half3 I = half3(1);
+
+   // First iteration:
+   v = v + (1.0 - dot(I, v))/3;
+   I = (v < 0) ? half3(0) : I;
+   v = max(v, float3(0));
+
+   // 2nd iteration:
+   v = v + (1.0 - dot(I, v))/(I.x + I.y + I.z);
+   I = (v < 0) ? half3(0) : I;
+   v = max(v, float3(0));
+
+   // 3nd iteration:
+   v = v + (1.0 - dot(I, v))/(I.x + I.y + I.z);
+
+   u_out = v + theta*div_p;
+}
+#endif

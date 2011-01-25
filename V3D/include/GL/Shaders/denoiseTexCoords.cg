@@ -1,0 +1,25 @@
+void
+main(uniform sampler2D L_tex : TEXUNIT0,
+     uniform sampler2D s_tex : TEXUNIT1,
+     float2 st0 :  TEXCOORD0,
+     float4 stWE : TEXCOORD1,
+     float4 stNS : TEXCOORD2,
+     uniform float lambda,
+     out float3 color : COLOR)
+{
+#if 1
+   float2 s = tex2D(s_tex, st0).xy;
+   float2 L = tex2D(L_tex, st0).xy;
+
+   float2 s_W = tex2D(s_tex, stWE.xy).xy;
+   float2 s_E = tex2D(s_tex, stWE.zw).xy;
+   float2 s_N = tex2D(s_tex, stNS.xy).xy;
+   float2 s_S = tex2D(s_tex, stNS.zw).xy;
+
+   color.xy = (L + lambda*(s_W+s_E+s_N+s_S)) / (1.0 + 4*lambda);
+   color.z = 0;
+#else
+   color.xy = st0;
+   color.z = 0;
+#endif
+}

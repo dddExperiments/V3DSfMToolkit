@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="V3D"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(V3D)\include&quot;;&quot;$(V3D)\include\Base&quot;;&quot;$(V3D)\include\GL&quot;;&quot;$(V3D)\include\Math&quot;;&quot;$(V3D)\include\Geometry&quot;"
+		PreprocessorDefinitions="V3DLIB_ENABLE_LPSOLVE;V3DLIB_ENABLE_SUITESPARSE;V3DLIB_ENABLE_ARPACK;V3DLIB_ENABLE_GPGPU;V3DLIB_ENABLE_CUDA;V3DLIB_GPGPU_ENABLE_CG;V3DLIB_ENABLE_LIBJPEG;V3DLIB_ENABLE_LIBPNG;V3DLIB_ENABLE_SQLITE3;V3DLIB_ENABLE_LIBEXIF"
+	/>
+	<UserMacro
+		Name="V3D"
+		Value="$(SolutionDir)\V3D"
+	/>
+</VisualStudioPropertySheet>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="ldl"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(ldl)\include"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="liblpsolve55.lib"
+		AdditionalLibraryDirectories="$(SolutionDir)\lpsolve\lib\$(PlatformName)"
+	/>
+	<UserMacro
+		Name="ldl"
+		Value="$(SolutionDir)\Dependencies\ldl"
+	/>
+</VisualStudioPropertySheet>

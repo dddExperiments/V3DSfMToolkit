@@ -1,0 +1,44 @@
+#define N_ITERATIONS 16
+#define N_INNER_ITERATIONS 16
+
+void
+main(uniform sampler2D s_tex : TEXUNIT0,
+     float2 st0 :  TEXCOORD0,
+     out float3 color : COLOR)
+{
+   float2 res = st0;
+
+#if 1
+   float2 lohi;
+
+   for (int iter = 0; iter < N_ITERATIONS; ++iter)
+   {
+      lohi.x = 0.0;
+      lohi.y = 1.0;
+
+      for (int iter2 = 0; iter2 < N_INNER_ITERATIONS; ++iter2)
+      {
+         float mid = (lohi.x+lohi.y)/2;
+         float val = tex2D(s_tex, float2(mid, res.y)).x;
+         lohi = (st0.x < val) ? float2(lohi.x, mid) : float2(mid, lohi.y);
+      }
+
+      res.x = (lohi.x+lohi.y)/2;
+
+      lohi.x = 0.0;
+      lohi.y = 1.0;
+
+      for (int iter2 = 0; iter2 < N_INNER_ITERATIONS; ++iter2)
+      {
+         float mid = (lohi.x+lohi.y)/2;
+         float val = tex2D(s_tex, float2(res.x, mid)).y;
+         lohi = (st0.y < val) ? float2(lohi.x, mid) : float2(mid, lohi.y);
+      }
+
+      res.y = (lohi.x+lohi.y)/2;
+   }
+#endif
+
+   color.xy = res;
+   color.z = 0;
+}

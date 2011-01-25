@@ -1,0 +1,34 @@
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D p1_src : TEXUNIT1,
+          uniform sampler2D p2_src : TEXUNIT2,
+          uniform sampler2D q_src : TEXUNIT3,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float tau,
+          out float4 u_out : COLOR0)
+{
+   float2 stW = stWE.xy;
+   float2 stN = stNS.xy;
+
+   float4 const u = tex2D(u_src, st0);
+
+   float4 p1 = tex2D(p1_src, st0);
+   float4 p2 = tex2D(p2_src, st0);
+   float4 q  = tex2D(q_src, st0);
+
+   bool const isLeftBorder  = (stW.x < 0);
+   bool const isTopBorder   = (stN.y < 0);
+
+   half4 p1_W = isLeftBorder ? half4(0) : tex2D(p1_src, stW);
+   half4 p2_N = isTopBorder  ? half4(0) : tex2D(p2_src, stN);
+
+   float4 div_p = p1 - p1_W + p2 - p2_N;
+
+   float4 div_p_l = div_p.xyzw - float4(0.0f, div_p.xyz);
+   float4 q_l = q.xyzw - float4(0.0, q.xyz);
+
+   float4 new_u = u + tau*(div_p_l - q_l);
+   u_out = clamp(new_u, 0, 1);
+   u_out.x = 0;
+}

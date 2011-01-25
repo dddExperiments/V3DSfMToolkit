@@ -1,0 +1,212 @@
+#ifndef HALF_WIDTH
+# define HALF_WIDTH 3
+#endif
+#define FULL_WIDTH (2*(HALF_WIDTH)+1)
+
+#ifndef N_LEVELS
+# define N_LEVELS 4
+#endif
+
+// Default is coarsest level + base level.
+#ifndef LEVEL_SKIP
+# define LEVEL_SKIP (N_LEVELS-1)
+#endif
+
+// Number of iteration per level
+#ifndef N_ITERATIONS
+#define N_ITERATIONS 5
+#endif
+
+#define INITIAL_MULTIPLIER (1 << (N_LEVELS-1))
+
+float sqr(float x) { return x*x; }
+
+float det3x3symm(float3 abc, float3 def)
+{
+   float const a = abc.x;
+   float const b = abc.y;
+   float const c = abc.z;
+   float const d = def.x;
+   float const e = def.y;
+   float const f = def.z;
+
+   float res = a*d*f + 2*b*c*e;
+   res -= a*e*e + b*b*f + c*c*d;
+   return res;
+}
+
+void adjoint3x3symm(float3 abc, float3 def, out float3 ABC, out float3 DEF)
+{
+   float const a = abc.x;
+   float const b = abc.y;
+   float const c = abc.z;
+   float const d = def.x;
+   float const e = def.y;
+   float const f = def.z;
+   ABC.x = d*f - e*e;
+   ABC.y = c*e - b*f;
+   ABC.z = b*e - c*d;
+   DEF.x = a*f - c*c;
+   DEF.y = b*c - a*e;
+   DEF.z = a*d - b*b;
+}
+
+float3 projectPoint(float3 X, float3x4 P)
+{
+   return mul(P, float4(X, 1));
+}
+
+void dp_dd(float3 XX, float3x4 P, out float3 dpx_dd, out float3 dpy_dd)
+{
+   float rcpD2 = 1.0 / (XX.z*XX.z);
+
+   dpx_dd.x = rcpD2 * (P[0][0]*XX.z - P[2][0]*XX.x);
+   dpx_dd.y = rcpD2 * (P[0][1]*XX.z - P[2][1]*XX.x);
+   dpx_dd.z = rcpD2 * (P[0][2]*XX.z - P[2][2]*XX.x);
+   dpy_dd.x = rcpD2 * (P[1][0]*XX.z - P[2][0]*XX.y);
+   dpy_dd.y = rcpD2 * (P[1][1]*XX.z - P[2][1]*XX.y);
+   dpy_dd.z = rcpD2 * (P[1][2]*XX.z - P[2][2]*XX.y);
+}
+
+void main(uniform sampler2D features_tex : TEXUNIT0,
+          uniform sampler2D im0L_tex :     TEXUNIT1,
+          uniform sampler2D im0R_tex :     TEXUNIT2,
+          uniform sampler2D im1L_tex :     TEXUNIT3,
+          uniform sampler2D im1R_tex :     TEXUNIT4,
+          float2 st : TEXCOORD0,
+          uniform float2 ds,
+          uniform float2 wh, // width + height
+          uniform float sqrConvergenceThreshold,
+          uniform float SSD_Threshold,
+          uniform float4 validRegion,
+          uniform float3x4 PL,
+          uniform float3x4 PR,
+          out float4 color : COLOR)
+{
+   float4 X0 = tex2D(features_tex, st);
+   float3 X1 = X0.xyz;
+
+   float3 I0, I1;
+   float4 st0, st1;
+   float3 dI_dd;
+
+   bool invalidate = (X0.w < 0);
+   float sqrUpdateLength, SSD;
+
+   float multiplier = INITIAL_MULTIPLIER;
+
+   float3 x0L, x0R, x1L, x1R;
+   float3 dpx0L_dd, dpy0L_dd, dpx0R_dd, dpy0R_dd;
+   float3 dpx1L_dd, dpy1L_dd, dpx1R_dd, dpy1R_dd;
+
+   x0L = projectPoint(X0.xyz, PL);
+   x0R = projectPoint(X0.xyz, PR);
+   dp_dd(x0L, PL, dpx0L_dd, dpy0L_dd);
+   dp_dd(x0R, PR, dpx0R_dd, dpy0R_dd);
+   x0L /= x0L.z;
+   x0R /= x0R.z;
+
+   // Downward loops with integer loop variables are not handled correctly by the Cg compiler :(
+   for (float level = N_LEVELS-1; level >= 0; level -= LEVEL_SKIP)
+   {
+      float2 ds_cur = ds*multiplier;
+
+      for (int iter = 0; iter < N_ITERATIONS; ++iter)
+      {
+         x1L = projectPoint(X1, PL);
+         x1R = projectPoint(X1, PR);
+
+         dp_dd(x1L, PL, dpx1L_dd, dpy1L_dd);
+         dp_dd(x1R, PR, dpx1R_dd, dpy1R_dd);
+
+         x1L /= x1L.z;
+         x1R /= x1R.z;
+
+         float3 abc = float3(0);
+         float3 def = float3(0);
+         float3 rhs = float3(0);
+         SSD = 0;
+
+         for (int y = -HALF_WIDTH; y <= HALF_WIDTH; ++y)
+         {
+            st0.y = x0L.y + y*ds_cur.y;
+            st0.w = x0R.y + y*ds_cur.y;
+            st1.y = x1L.y + y*ds_cur.y;
+            st1.w = x1R.y + y*ds_cur.y;
+
+            for (int x = -HALF_WIDTH; x <= HALF_WIDTH; ++x)
+            {
+               st0.x = x0L.x + x*ds_cur.x;
+               st0.z = x0R.x + x*ds_cur.x;
+               st1.x = x1L.x + x*ds_cur.x;
+               st1.z = x1R.x + x*ds_cur.x;
+
+               // Sample left images
+               I0 = tex2Dlod(im0L_tex, float4(st0.xy, 0, level)).xyz;
+               I1 = tex2Dlod(im1L_tex, float4(st1.xy, 0, level)).xyz;
+               I0.yz *= wh; // Image derivatives are provided in pixels, not texcoords
+               I1.yz *= wh;
+
+               dI_dd = I0.y*dpx0L_dd + I0.z*dpy0L_dd;
+               dI_dd += I1.y*dpx1L_dd + I1.z*dpy1L_dd;
+               dI_dd /= 2;
+
+               abc    += dI_dd.x * dI_dd;
+               def.xy += dI_dd.y * dI_dd.yz;
+               def.z  += dI_dd.z * dI_dd.z;
+
+               rhs += (I0.x - I1.x) * dI_dd;
+
+               SSD += sqr(I0.x - I1.x);
+
+               // Sample right images
+               I0 = tex2Dlod(im0R_tex, float4(st0.zw, 0, level)).xyz;
+               I1 = tex2Dlod(im1R_tex, float4(st1.zw, 0, level)).xyz;
+               I0.yz *= wh;
+               I1.yz *= wh;
+
+               dI_dd = I0.y*dpx0R_dd + I0.z*dpy0R_dd;
+               dI_dd += I1.y*dpx1R_dd + I1.z*dpy1R_dd;
+               dI_dd /= 2;
+
+               abc    += dI_dd.x * dI_dd;
+               def.xy += dI_dd.y * dI_dd.yz;
+               def.z  += dI_dd.z * dI_dd.z;
+
+               rhs += (I0.x - I1.x) * dI_dd;
+
+               SSD += sqr(I0.x - I1.x);
+            } // end for (x)
+         } // end for (y)
+
+         float const det = det3x3symm(abc, def);
+         float const rcpDet = 1.0f / det;
+
+         float3 ABC, DEF;
+         adjoint3x3symm(abc, def, ABC, DEF);
+
+         float3 dX;
+         dX.x = dot(ABC, rhs);
+         dX.y = dot(float3(ABC.y, DEF.xy), rhs);
+         dX.z = dot(float3(ABC.z, DEF.yz), rhs);
+         dX *= rcpDet;
+
+         X1 += dX;
+
+         float const sqrUpdateLength = dot(dX, dX);
+
+         invalidate = invalidate || (det < 0.00001);
+      } // end for (iter)
+
+     invalidate = invalidate || (sqrUpdateLength > sqrConvergenceThreshold);
+     invalidate = invalidate || (SSD > SSD_Threshold);
+
+      multiplier /= (1 << LEVEL_SKIP);
+   } // end for (level)
+
+  invalidate = invalidate || (any(x1L.xy < validRegion.xy) || any(x1L.xy > validRegion.zw));
+  invalidate = invalidate || (any(x1R.xy < validRegion.xy) || any(x1R.xy > validRegion.zw));
+
+   color = invalidate ? float4(-1.0f) : float4(X1, 1.0f);
+   //color = X0;
+} // end main()

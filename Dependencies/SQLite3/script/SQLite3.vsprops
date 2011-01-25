@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="SQLite3"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(SQLite3)\include"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="sqlite3.lib"
+		AdditionalLibraryDirectories="$(SQLite3)\lib\$(PlatformName)"
+	/>
+	<UserMacro
+		Name="SQLite3"
+		Value="$(SolutionDir)\Dependencies\SQLite3"
+	/>
+</VisualStudioPropertySheet>

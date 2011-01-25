@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="libDAI"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(libDAI)\include"
+		PreprocessorDefinitions="WINDOWS;DAI_WITH_BP;DAI_WITH_FBP;DAI_WITH_TRWBP;DAI_WITH_MF;DAI_WITH_HAK;DAI_WITH_LC;DAI_WITH_TREEEP;DAI_WITH_JTREE;DAI_WITH_MR;DAI_WITH_GIBBS;DAI_WITH_CBP;DAI_WITH_DECMAP"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalLibraryDirectories=""
+	/>
+	<UserMacro
+		Name="libDAI"
+		Value="$(SolutionDir)\Dependencies\libDAI"
+	/>
+</VisualStudioPropertySheet>

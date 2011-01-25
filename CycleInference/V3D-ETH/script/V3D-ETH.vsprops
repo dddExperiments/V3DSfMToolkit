@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="V3D-ETH"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(V3D-ETH)\include"
+	/>
+	<UserMacro
+		Name="V3D-ETH"
+		Value="$(SolutionDir)\CycleInference\V3D-ETH"
+	/>
+</VisualStudioPropertySheet>

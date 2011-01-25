@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="cg"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(cg)\include"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="glut32.lib cg.lib cgGL.lib glew32.lib"
+		AdditionalLibraryDirectories="$(cg)\lib\$(PlatformName)"
+	/>
+	<UserMacro
+		Name="cg"
+		Value="$(SolutionDir)\Dependencies\cg"
+	/>
+</VisualStudioPropertySheet>

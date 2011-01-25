@@ -1,0 +1,53 @@
+float sqr(float x) { return x*x; }
+float4 sqr(float4 x) { return x*x; }
+
+void main(uniform sampler2D src_tex : TEXUNIT0,
+          float4 st0 : TEXCOORD0,
+          float4 st1 : TEXCOORD1,
+          float4 st2 : TEXCOORD2,
+          float4 st3 : TEXCOORD3,
+          uniform float2 ds,
+          out float4 color : COLOR)
+{
+   // Note: we compute the cornerness on 2x2 pixels simultaneously
+   // a.xy is for pixel (x,y) and (x+1,y)
+   // a.zw is for pixel (x,y+1) and (x+1,y+1)
+   // Hence we can reuse tex fetches!
+
+   float3 abc00 = float3(0);
+   float3 abc01 = float3(0);
+   float3 abc10 = float3(0);
+   float3 abc11 = float3(0);
+
+   // Row y
+   // 6 values are in common.
+   abc00 += tex2D(src_tex, st0.zw).xyz;
+   abc00 += tex2D(src_tex, st1.xy).xyz;
+   abc00 += tex2D(src_tex, st1.zw).xyz;
+   abc00 += tex2D(src_tex, st2.xy).xyz;
+   abc00 += tex2D(src_tex, st2.zw).xyz;
+   abc00 += tex2D(src_tex, st3.xy).xyz;
+
+   abc01 = abc00 + tex2D(src_tex, st3.zw).xyz; // Rightmost pixel
+   abc00 += tex2D(src_tex, st0.xy).xyz; // Leftmost pixel
+
+   // Row y+1
+   // 6 values are in common.
+   abc10 += tex2D(src_tex, st0.zw + ds).xyz;
+   abc10 += tex2D(src_tex, st1.xy + ds).xyz;
+   abc10 += tex2D(src_tex, st1.zw + ds).xyz;
+   abc10 += tex2D(src_tex, st2.xy + ds).xyz;
+   abc10 += tex2D(src_tex, st2.zw + ds).xyz;
+   abc10 += tex2D(src_tex, st3.xy + ds).xyz;
+
+   abc11 = abc10 + tex2D(src_tex, st3.zw + ds).xyz;
+   abc10 += tex2D(src_tex, st0.xy + ds).xyz;
+
+   float4 a = float4(abc00.x, abc01.x, abc10.x, abc11.x);
+   float4 b = float4(abc00.y, abc01.y, abc10.y, abc11.y);
+   float4 c = float4(abc00.z, abc01.z, abc10.z, abc11.z);
+
+   float4 cornerness = 0.5f*(a+c) - sqrt(0.25f*sqr(a-c) + sqr(b));
+
+   color = cornerness;
+}

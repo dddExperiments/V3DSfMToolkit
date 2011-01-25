@@ -1,0 +1,46 @@
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D p1_src : TEXUNIT1,
+          uniform sampler2D p2_src : TEXUNIT2,
+          uniform sampler2D q_src : TEXUNIT3,
+          uniform sampler2D rs_src : TEXUNIT4,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float tau,
+          out float3 u_out : COLOR0)
+{
+   float2 stW = stWE.xy;
+   float2 stN = stNS.xy;
+   float2 stE = stWE.zw;
+   float2 stS = stNS.zw;
+
+   float3 const u = tex2D(u_src, st0).xyz;
+
+   float2 p1 = tex2D(p1_src, st0).yz;
+   float2 p2 = tex2D(p2_src, st0).yz;
+   float4 rs = tex2D(rs_src, st0);
+   float3 q  = tex2D(q_src, st0).xyz;
+
+   bool const isLeftBorder   = (stW.x < 0);
+   bool const isTopBorder    = (stN.y < 0);
+   bool const isRightBorder  = (stE.x > 1);
+   bool const isBottomBorder = (stS.y > 1);
+
+   float2 p1_W = isLeftBorder ? float2(0) : tex2D(p1_src, stW).yz;
+   float2 p2_N = isTopBorder  ? float2(0) : tex2D(p2_src, stN).yz;
+   float2 div_p = p1 - p1_W + p2 - p2_N;
+
+   float2 div_q = q.yz - q.xy;
+
+   float r1_W = isLeftBorder ? 0 : tex2D(rs_src, stW).x;
+   float r2_N = isTopBorder  ? 0 : tex2D(rs_src, stN).y;
+   float2 div_r = float2(rs.x, -r1_W) + float2(rs.y, -r2_N);
+
+   float s1_E = isRightBorder  ? 0 : tex2D(rs_src, stE).z;
+   float s2_S = isBottomBorder ? 0 : tex2D(rs_src, stS).w;
+   float2 div_s = float2(rs.z, -s1_E) + float2(rs.w, -s2_S);
+
+   float2 new_u = clamp(u.yz - tau*(div_p + div_r + div_s + div_q), 0, 1);
+   u_out.x = 0;
+   u_out.yz = new_u;
+}

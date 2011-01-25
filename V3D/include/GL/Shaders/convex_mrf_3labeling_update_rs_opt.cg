@@ -1,0 +1,37 @@
+void main(uniform sampler2D u_src : TEXUNIT0,
+          uniform sampler2D rs_src : TEXUNIT1,
+          float2 st0  : TEXCOORD0,
+          float4 stWE : TEXCOORD1,
+          float4 stNS : TEXCOORD2,
+          uniform float tau,
+          uniform float c2,
+          out float4 rs_out : COLOR0)
+{
+   float2 stW = stWE.xy;
+   float2 stN = stNS.xy;
+   float2 stE = stWE.zw;
+   float2 stS = stNS.zw;
+
+   float const u   = tex2D(u_src, st0).y;
+   float const u_E = tex2D(u_src, stE).z;
+   float const u_S = tex2D(u_src, stS).z;
+   float const u_W = tex2D(u_src, stW).z;
+   float const u_N = tex2D(u_src, stN).z;
+
+   float4 rs = tex2D(rs_src, st0);
+
+   bool const isLeftBorder   = (stW.x < 0);
+   bool const isTopBorder    = (stN.y < 0);
+   bool const isRightBorder  = (stE.x > 1);
+   bool const isBottomBorder = (stS.y > 1);
+
+   float4 drs = float4(0);
+   drs.x = isRightBorder ? 0 : (u_E - u);
+   drs.y = isBottomBorder ? 0 : (u_S - u);
+   drs.z = isLeftBorder ? 0 : (u_W - u);
+   drs.w = isTopBorder ? 0 : (u_N - u);
+
+   rs -= tau * drs;
+
+   rs_out = clamp(rs, -c2, c2);
+}

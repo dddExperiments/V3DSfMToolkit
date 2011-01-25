@@ -1,0 +1,66 @@
+void
+main(uniform sampler2D depth_tex : TEXUNIT0,
+     uniform sampler2D warpedDepth_tex : TEXUNIT1,
+     uniform sampler2D colorImage_tex : TEXUNIT2,
+     uniform sampler2D invA_tex : TEXUNIT3,
+     float2 st0 :  TEXCOORD0,
+     uniform float3 invK0_row0,
+     uniform float3 invK0_row1,
+     uniform float3 invK0_row2,
+     uniform float3 invR0_row0,
+     uniform float3 invR0_row1,
+     uniform float3 invR0_row2,
+     uniform float3 center0,
+     uniform float3 P1_row0,
+     uniform float3 P1_row1,
+     uniform float3 P1_row2,
+     uniform float3 P1_col3,
+     uniform float2 depthWH,
+     uniform float2 imageWH,
+     uniform float distThreshold,
+     out float4 color : COLOR)
+{
+   float2 st = tex2D(invA_tex, st0).xy;
+   //float2 st = st0;
+
+   float const depth = tex2D(depth_tex, st).x;
+   float2 const pixelShift = float2(0.5);
+
+   float3 p0 = float3(st * depthWH - pixelShift, 1);
+
+   float3 p;
+   p.x = dot(invK0_row0, p0);
+   p.y = dot(invK0_row1, p0);
+   p.z = dot(invK0_row2, p0);
+
+   p /= p.z; p *= depth;
+
+   float3 X;
+   X.x = dot(invR0_row0, p);
+   X.y = dot(invR0_row1, p);
+   X.z = dot(invR0_row2, p);
+   X += center0;
+
+   float3 q;
+   q.x = dot(P1_row0, X);
+   q.y = dot(P1_row1, X);
+   q.z = dot(P1_row2, X);
+   q += P1_col3;
+   q /= q.z;
+   q.xy += pixelShift;
+   q.xy /= imageWH;
+
+   bool valid = depth > 0;
+   valid = valid && q.x > 0 && q.x < 1 && q.y > 0 && q.y < 1;
+
+   q = valid ? q : float3(0);
+
+   float depth2 = pack_4ubyte(tex2D(warpedDepth_tex, q.xy));
+   float dist = abs(depth-depth2);
+
+   float3 c = tex2D(colorImage_tex, q.xy).xyz;
+
+   valid = valid & (dist < distThreshold);
+
+   color = valid ? float4(255.0 * c, 1.0) : float4(0);
+}
