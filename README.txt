@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ETH-V3D Structure-and-Motion software was created by Christopher Zach.
 Original source available at: http://www.inf.ethz.ch/personal/chzach/opensource.html (GPL)
 
+Windows compiled files with scripting available at: http://www.visual-experiments.com/blog/?sdmon=downloads/V3dSfMToolkit1.zip
+
 Dependencies:
 -------------
 ArPack : I've used igraph source (http://igraph.bzr.sf.net/bzr/igraph/)
